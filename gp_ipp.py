@@ -8,13 +8,31 @@ from sklearn.gaussian_process.kernels import RBF, Matern, ConstantKernel as C
 from classes.Gaussian2D import Gaussian2D
 from parameters import *
 
+import pypolo as pypolo
+import gpytorch
 
 class GaussianProcessForIPP():
     def __init__(self, node_coords):
         # self.kernel = C(1.0, (1e-3, 1e3)) * RBF([5,5], (1e-2, 1e2))
         # self.kernel = RBF(0.2)
-        self.kernel = Matern(length_scale=0.45)
-        self.gp = GaussianProcessRegressor(kernel=self.kernel, optimizer=None, n_restarts_optimizer=0)
+        # self.kernel = Matern(length_scale=0.45)
+        # self.gp = GaussianProcessRegressor(kernel=self.kernel, optimizer=None, n_restarts_optimizer=0)
+        self.kernel = gpytorch.kernels.ScaleKernel(
+                        pypolo.models.gp.kernels.AttentiveKernel(
+                            dim_input=2,
+                            dim_hidden=10,
+                            dim_output=10,
+                            min_lengthscale=0.1,
+                            max_lengthscale=0.5,
+                        )
+                    )
+        self.gp = pypolo.models.gp.GPRModel(
+                    x_train=x_init,
+                    y_train=y_init,
+                    kernel=self.kernel,
+                    noise_var=0.0,
+                    num_sparsification=0,
+                )
         self.observed_points = []
         self.observed_value = []
         self.node_coords = node_coords
@@ -29,7 +47,9 @@ class GaussianProcessForIPP():
             y = np.array(self.observed_value).reshape(-1,1)
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                self.gp.fit(X, y)
+                # self.gp.fit(X, y)
+                self.gp.add_data(X, y)
+                self.gp.optimize(num_steps=10)
 
     def update_node(self):
         y_pred, std = self.gp.predict(self.node_coords, return_std=True)
@@ -122,9 +142,30 @@ if __name__ == '__main__':
     x2 = np.linspace(0, 1)
     x1x2 = np.array(list(product(x1, x2)))
     y_true = example.distribution_function(X=x1x2)
+
+    x_init = np.random.uniform(0,1,(10,2))
+    y_init = example.distribution_function(x_init)
+
+    sensor = pypolo.sensors.PointSensor(
+        matrix=x1x2,
+        env_extent=[0,1,0,1],
+        rate=0.5,
+        noise_scale=0.0,
+        rng=np.random.RandomState(seed=0),
+    )
+    evaluator = pypolo.utils.Evaluator(
+        sensor=sensor,
+        task_extent=[0,1,0,1],
+        eval_grid=[0,1,0,1],
+    )
+    evaluator.add_data(x_init, y_init)
+
     # print(y_true.shape)
     node_coords = np.random.uniform(0,1,(100,2))
-    gp_ipp = GaussianProcessForIPP(node_coords)
+    gp_ipp = GaussianProcessForIPP(node_coords, x_init, y_init)
+    gp_ipp.gp.optimize(num_steps=1)
+    gp_ipp.gp.optimize(num_steps=10)
+    
     gp_ipp.plot(y_true.reshape(50,50))
     for i in range(node_coords.shape[0]):
         y_observe = example.distribution_function(node_coords[i].reshape(-1,2))
@@ -136,10 +177,3 @@ if __name__ == '__main__':
     gp_ipp.plot(y_true)
     print(gp_ipp.evaluate_F1score(y_true))
     print(gp_ipp.gp.kernel_)
-
-
-
-
-
-
-

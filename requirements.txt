@@ -1,0 +1,11 @@
+numpy>=1.17
+ray>=1.15
+pytorch
+scipy
+scikit-learn
+matplotlib
+imageio
+shapely
+hydra-core
+bezier
+gpytorch
