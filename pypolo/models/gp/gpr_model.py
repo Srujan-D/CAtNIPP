@@ -101,8 +101,12 @@ class GPRModel(BaseModel):
         if return_std:  
             std = np.vstack(stds)
             std = self.y_scaler.postprocess_std(std)
+            # print('-----std shape-----', std.shape)
             return mean, std
         elif return_cov:
+            # print('-----predictive_dist.covariance_matrix shape-----', x.shape, predictive_dist.covariance_matrix.numpy().shape)
+            # return mean, predictive_dist.covariance_matrix.numpy()
+            print('-----predictive_dist.variance shape-----', x.shape, predictive_dist.variance.numpy().shape)
             return mean, predictive_dist.covariance_matrix.numpy()
         else:
             std = np.vstack(stds)

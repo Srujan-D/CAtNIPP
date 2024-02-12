@@ -8,8 +8,8 @@ class MinMaxScaler:
         self.expected_min = expected_min
         self.expected_max = expected_max
         self.expected_range = expected_max - expected_min
-        self.actual_min = actual_min
-        self.actual_max = actual_max
+        self.actual_min = 0 # actual_min
+        self.actual_max = 1.0 # actual_max
         if actual_min is not None and actual_max is not None:
             self.actual_range = actual_max - actual_min
         else:

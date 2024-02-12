@@ -78,7 +78,10 @@ class Env():
         self.ground_truth = self.get_ground_truth()
 
         # initialize gp
-        self.gp_ipp = GaussianProcessForIPP(self.node_coords)
+        x_init = np.random.rand(10, 2)
+        y_init = self.underlying_distribution.distribution_function(x_init)
+        self.gp_ipp = GaussianProcessForIPP(self.node_coords, x_init=x_init, y_init=y_init)
+        # self.gp_ipp = GaussianProcessForIPP(self.node_coords)
         self.high_info_area = self.gp_ipp.get_high_info_area() if ADAPTIVE_AREA else None
         self.node_info, self.node_std = self.gp_ipp.update_node()
         
