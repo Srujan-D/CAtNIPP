@@ -22,7 +22,14 @@ class MinMaxScaler:
 
     def preprocess(self, raw: np.ndarray) -> np.ndarray:
         assert self.actual_range is not None
-        standardized = (raw - self.actual_min) / self.actual_range
+        try:
+            standardized = (raw - self.actual_min) / self.actual_range
+        except:
+            print('------------in except block------------')
+            print('-----raw-----', raw, raw.shape)
+            print('-----self.actual_min-----', self.actual_min, self.actual_min.shape)
+            print('-----self.actual_range-----', self.actual_range, self.actual_range.shape)
+            quit()
         return self.expected_min + standardized * self.expected_range
 
     def postprocess(self, scaled: np.ndarray) -> np.ndarray:

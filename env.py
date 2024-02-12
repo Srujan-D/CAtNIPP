@@ -245,6 +245,7 @@ class Env():
         # plt.show()
         frame = '{}/{}_{}_{}_samples.png'.format(path, n, testID, step, self.sample_size)
         self.frame_files.append(frame)
+        plt.close()
 
 if __name__=='__main__':
     env = Env(sample_size=200, budget_range=(7.999,8), save_image=True)

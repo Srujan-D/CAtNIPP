@@ -3,7 +3,9 @@ from typing import List, Tuple
 import gpytorch
 import numpy as np
 import torch
+from torcheval.metrics import R2Score
 from gpytorch.mlls import ExactMarginalLogLikelihood
+from sklearn.metrics import r2_score
 
 # from pypolo.scalers import MinMaxScaler, StandardScaler
 from pypolo.scalers import MinMaxScaler, StandardScaler
@@ -21,7 +23,6 @@ class GPyTorchModel(gpytorch.models.ExactGP):
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
-
 
 class GPRModel(BaseModel):
     def __init__(
@@ -178,3 +179,16 @@ class GPRModel(BaseModel):
         primitive_lengthscales = self.kernel.base_kernel.lengthscales.numpy()
         lengthscales = features @ primitive_lengthscales.reshape(-1, 1)
         return lengthscales
+
+    # def score(self, x, y_true):
+    #     y_pred, _ = self.predict(x)
+    #     print('-----y_true shape-----', y_true.reshape(-1, 1).shape, type(y_true.reshape(-1, 1)))
+    #     print('-----y_pred shape-----', y_pred.shape, type(y_pred))
+    #     metric = R2Score()
+    #     metric.update(torch.tensor(y_pred), torch.tensor(y_true.reshape(-1, 1)))
+    #     return metric.compute().item()
+    
+    def score(self, x, y_true):
+        y_pred, _ = self.predict(x)
+        return r2_score(y_true, y_pred)
+        

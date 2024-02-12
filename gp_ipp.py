@@ -76,22 +76,31 @@ class GaussianProcessForIPP():
             x1 = np.linspace(0, 1, 30)
             x2 = np.linspace(0, 1, 30)
             X = np.array(list(product(x1, x2)))
+        
+        if X == []:
+            print('-------------------X-------------------', X)
         _, std = self.gp.predict(X, return_std=True)
         trace = np.sum(std*std)
         return trace
 
     def evaluate_mutual_info(self, X=None):
+        key = False
         if X is None:
             x1 = np.linspace(0, 1, 30)
             x2 = np.linspace(0, 1, 30)
             X = np.array(list(product(x1, x2)))
+            key = True
         n_sample = X.shape[0]
         # _, cov = self.gp.predict(X, return_cov=True)
         
         # mi = (1 / 2) * np.log(np.linalg.det(0.01*cov.reshape(n_sample, n_sample) + np.identity(n_sample)))
         _, std = self.gp.predict(X, return_std=True)
         mi = 0/5 * np.log(2 * np.pi * np.square(std)) + 0.5
-        mi = mi.reshape(30, 30)
+        if key:
+            mi = mi.reshape(30, 30)
+        else:
+            print("X.shape, mi.shape", X.shape, mi.shape)
+            mi = mi.reshape(-1, 1)        
         return mi
 
     def get_high_info_area(self, t=ADAPTIVE_TH, beta=1):
